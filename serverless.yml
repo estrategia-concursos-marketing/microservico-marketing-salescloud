@@ -1,31 +1,17 @@
-# Welcome to Serverless!
-#
-# This file is the main config file for your service.
-# It's very minimal at this point and uses default values.
-# You can always add more config options for more control.
-# We've included some commented out config examples here.
-# Just uncomment any of them to get that config option.
-#
-# For full config options, check the docs:
-#    docs.serverless.com
-#
-# Happy Coding!
-
-service: aws-nodejs # NOTE: update this with your service name
-#app: your-app-name
-#tenant: your-tenant-name
-
-# You can pin your service to only deploy with a specific Serverless version
-# Check out our docs for more details
-# frameworkVersion: "=X.X.X"
+# File for the Serverless framework.
+service: microservico-marketing-salescloud
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs8.10
+  stage: dev
+  region: us-east-2
 
-# you can overwrite defaults here
-#  stage: dev
-#  region: us-east-1
+functions:
+  add:
+    handler: handler.add
+    events:
+      - http: POST leads/add
 
 # you can add statements to the Lambda function's IAM Role here
 #  iamRoleStatements:
@@ -56,9 +42,6 @@ provider:
 #    - exclude-me.js
 #    - exclude-me-dir/**
 
-functions:
-  hello:
-    handler: handler.hello
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
@@ -88,12 +71,6 @@ functions:
 #      - cognitoUserPool:
 #          pool: MyUserPool
 #          trigger: PreSignUp
-#      - alb:
-#          listenerArn: arn:aws:elasticloadbalancing:us-east-1:XXXXXX:listener/app/my-load-balancer/50dc6c495c0c9188/
-#          priority: 1
-#          conditions:
-#            host: example.com
-#            path: /hello
 
 #    Define function environment variables here
 #    environment:

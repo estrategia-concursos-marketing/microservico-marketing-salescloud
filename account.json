@@ -1,0 +1,12 @@
+{
+    "MarketingCloud": {
+        "ID": "100002066",
+        "ClientID": "nx0e16jnozu1iuvf2qr7i30w",
+        "ClientSecret": "bqIgru8NOtKdhtPSKiSjumQf"
+    },
+    "Salescloud-Post": "https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8",
+    "DataExtensions": {
+        "dataExtensionName": "TestDataExtensionName1",
+        "dataExtensionRowKey": "Some-key-value"
+    }
+}
