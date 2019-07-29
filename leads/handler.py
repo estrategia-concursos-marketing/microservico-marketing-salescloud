@@ -1,6 +1,7 @@
 import os
 import json
 import FuelSDK
+import requests
 import ET_Client
 
 """
@@ -20,8 +21,8 @@ import ET_Client
   Qualquer PROBLEMA, entre em contato com a equipe de BI e CRM, responsáveis pela produção desse microserviço.
 """
 
-def emailValidator(Lead_Teste.Email):
-
+def emailValidator():
+    X = 1
 
 def marketingCloud():
     """
@@ -65,23 +66,39 @@ def hello(event, context):
     }
     """
 
-def salesCloud(Lead_Teste.Email):
+def salesCloud():
+    url = "https://webto.salesforce.com/servlet/servlet.WebToLead"
+
+    encoding = {"encoding":"UTF-8"}
+
+    payload = "oid=%2000D41000001Q9k8&retURL=https%3A%2F%2Fwww.estrategiaconcursos.com.br%2Fgratis%2Fsucesso-vade-mecum-delagado-pc-rj%2F&Cidade_OrigemIP__c=Barueri&Estado_OrigemIP__c=Sao%20Paulo&Modo_de_entrada__c=landing-page&lead_source=Landing%20Page&Area_de_Interesse__c=agencias-reguladoras&Concurso_de_Interesse__c=detran-sp&    Interesse_Evento__c=Teste-MIcroservico&recordType=01241000001AP21&first_name=Teste0951&email=israel.mendez232%40gmail.com&phone=(11)%2094469-1991"
+    headers = {
+        'Content-Type': "application/x-www-form-urlencoded",
+        'Accept': "*/*",
+        'Cache-Control': "no-cache",
+        'Host': "webto.salesforce.com",
+        'Accept-Encoding': "gzip, deflate",
+        'Content-Length': "463",
+        'Connection': "keep-alive",
+        'cache-control': "no-cache"
+    }
+
+    response = requests.request("POST", url, data=payload, headers=headers, params=encoding)
 
 
 def S3andCSV():
-
-
-
+    x = 2
 
 def main():
-    emailValidator()
-
-    marketingCloud()
-
     salesCloud()
-
-    S3andCSV()
+    # emailValidator()
+# 
+    # marketingCloud()
+# 
+# 
+    # S3andCSV()
   
+
 
 # Variáveis externas no Lambda:
 DataExtensions = [ # Estrutura é [Chave Externa, Nome da Base]
