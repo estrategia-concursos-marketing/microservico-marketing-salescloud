@@ -1,8 +1,11 @@
 import os
+import re
 import json
 import FuelSDK
+import smtplib
 import requests
 import ET_Client
+import dns.resolver
 import configparser # remover pacote depois que subir o microserviço.
 
 """
@@ -22,8 +25,49 @@ import configparser # remover pacote depois que subir o microserviço.
   Qualquer PROBLEMA, entre em contato com a equipe de BI e CRM, responsáveis pela produção desse microserviço.
 """
 
-def emailValidator():
-    X = 1
+
+def emailValidator(email):
+    # Etapas da Validação:
+    ## 1. Regex;
+    ## 2. DNS e SMTP.
+
+    # REGEX:
+    regex = "^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,})$"
+
+    def badSyntax(email):
+        match = re.match(regex, email)
+        if match == None:
+            return "Email falso. Revalidar."
+        else:
+            return "Email válidow!"
+            # return True
+
+    # DNS e SMTP:
+    def smtpDnsValidtion(email):
+        splitAddress = email.split('@')
+        domain = str(splitAddress[1])
+
+        records = dns.resolver.query(domain, 'MX')
+        mxRecord = records[0].exchange
+        mxRecord = str(mxRecord)
+
+        server = smtplib.SMTP()
+        server.set_debuglevel(0)
+
+        server.connect(mxRecord)
+        server.helo(server.local_hostname)
+        server.mail(email)
+        code, message = server.rcpt(str(email))
+        server.quit()
+
+        if code == 250:
+            return "existingEmail"
+        else:
+            return "notExistingEmail"
+
+    print(badSyntax(email))
+    print(smtpDnsValidtion(email))
+    
 
 def marketingCloud():
     """
@@ -37,19 +81,19 @@ def marketingCloud():
     de.CustomerKey = DataExtensions[0][0]
     de.auth_stub = stubObj
     de.props = {
-        "oid": Lead_Teste['oid'],
-        "retURL": Lead_Teste['retURL'],
-        "Cidade_OrigemIP__c": Lead_Teste['Cidade_OrigemIP__c'],
-        "Estado_OrigemIP__c": Lead_Teste['Estado_OrigemIP__c'],
-        "Modo_de_entrada__c": Lead_Teste['Modo_de_entrada__c'],
-        "lead_source": Lead_Teste['lead_source'],
-        "Area_de_Interesse__c": Lead_Teste['Area_de_Interesse__c'],
-        "Concurso_de_Interesse__c": Lead_Teste['Concurso_de_Interesse__c'],
-        "Interesse_Evento__c": Lead_Teste['Interesse_Evento__c'],
-        "recordType": Lead_Teste['recordType'],
-        "first_name": Lead_Teste['first_name'],
-        "email": Lead_Teste['email'],
-        "phone": Lead_Teste['phone']
+        "oid": config['MC']['oid'],
+        "retURL": config['MC']['retURL'],
+        "Cidade_OrigemIP__c": config['MC']['Cidade_OrigemIP__c'],
+        "Estado_OrigemIP__c": config['MC']['Estado_OrigemIP__c'],
+        "Modo_de_entrada__c": config['MC']['Modo_de_entrada__c'],
+        "lead_source": config['MC']['lead_source'],
+        "Area_de_Interesse__c": config['MC']['Area_de_Interesse__c'],
+        "Concurso_de_Interesse__c": config['MC']['Concurso_de_Interesse__c'],
+        "Interesse_Evento__c": config['MC']['Interesse_Evento__c'],
+        "recordType": config['MC']['recordType'],
+        "first_name": config['MC']['first_name'],
+        "email": config['MC']['email'],
+        "phone": config['MC']['phone']
     }
     postResponse = de.post()
 
@@ -64,19 +108,19 @@ def salesCloud():
     encoding = {"encoding":"UTF-8"}
 
     payload = {
-        "oid": Lead_Teste['oid'],
-        "retURL": Lead_Teste['retURL'],
-        "Cidade_OrigemIP__c": Lead_Teste['Cidade_OrigemIP__c'],
-        "Estado_OrigemIP__c": Lead_Teste['Estado_OrigemIP__c'],
-        "Modo_de_entrada__c": Lead_Teste['Modo_de_entrada__c'],
-        "lead_source": Lead_Teste['lead_source'],
-        "Area_de_Interesse__c": Lead_Teste['Area_de_Interesse__c'],
-        "Concurso_de_Interesse__c": Lead_Teste['Concurso_de_Interesse__c'],
-        "Interesse_Evento__c": Lead_Teste['Interesse_Evento__c'],
-        "recordType": Lead_Teste['recordType'],
-        "first_name": Lead_Teste['first_name'],
-        "email": Lead_Teste['email'],
-        "phone": Lead_Teste['phone']
+        "oid": config['MC']['oid'],
+        "retURL": config['MC']['retURL'],
+        "Cidade_OrigemIP__c": config['MC']['Cidade_OrigemIP__c'],
+        "Estado_OrigemIP__c": config['MC']['Estado_OrigemIP__c'],
+        "Modo_de_entrada__c": config['MC']['Modo_de_entrada__c'],
+        "lead_source": config['MC']['lead_source'],
+        "Area_de_Interesse__c": config['MC']['Area_de_Interesse__c'],
+        "Concurso_de_Interesse__c": config['MC']['Concurso_de_Interesse__c'],
+        "Interesse_Evento__c": config['MC']['Interesse_Evento__c'],
+        "recordType": config['MC']['recordType'],
+        "first_name": config['MC']['first_name'],
+        "email": config['MC']['email'],
+        "phone": config['MC']['phone']
     }
     headers = {
         'Content-Type': "application/x-www-form-urlencoded",
@@ -106,10 +150,8 @@ def S3andCSV():
     x = 2
 
 def main():
-    config = configparser.ConfigParser()
-    config.read(r"leads\cfg.cfg")
-    print(configparser.get('MC', 'clientid'))
-    # emailValidator()
+    email = 'email@gmail.com'
+    emailValidator(email)
 
     # salesCloud()
 
@@ -117,13 +159,7 @@ def main():
     # marketingCloud(basesTotal_Gerais, Leads_Teste)
 
     # S3andCSV()
-    
-    # with open('leads\config.json') as json_file:
-    #     data = json.load(json_file)
-    # print(data)
   
-
-
 # Variáveis externas no Lambda:
 ## estrutura é [Chave Externa, Nome da Base]
 basesLeads_Gerais = ['03763DA8-E55A-4349-9E42-5354D8E3C176', 'TESTE-Microservico-Leads-Gerais-5'] # Base simulada de Leads-Gerais-5
@@ -157,6 +193,9 @@ Lead_Teste = {
     "email": "israel.mendez232@gmail.com",
     "phone": "(11) 94469-1991"
 }
+
+config = configparser.ConfigParser()
+config.read(r"C:\Users\israel.silva.ESTRATEGIA\Desktop\Arquivos\Código\microservico-marketing-salescloud\leads\cfg.cfg")
 
 
 if __name__ == '__main__':
