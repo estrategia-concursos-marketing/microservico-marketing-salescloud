@@ -48,9 +48,9 @@ def emailValidator(Lead_Teste):
     code, message = server.rcpt(str(email))
     server.quit()
 
-    if code == 250:
+    if code != 250:
         return True
-        
+
 def marketingCloud(Bases, Lead_Teste):
     """
 
@@ -65,13 +65,11 @@ def marketingCloud(Bases, Lead_Teste):
     de.props = props1 if de.CustomerKey == basesLeads_Gerais else props2
     postResponse = de.post()
 
-    # print('Post Status: ' + str(postResponse.status))
-    # print('Code: ' + str(postResponse.code))
-    # print('Message: ' + str(postResponse.message))
-    print('Results: ' + str(postResponse.results))
-
-    print("Lead no MC com Sucesso")
-    return "Lead inserida no MC com Sucesso"
+    # Mensagens de error para debugar depois! Caso necessário:
+    ## print('Post Status: ' + str(postResponse.status))
+    ## print('Code: ' + str(postResponse.code))
+    ## print('Message: ' + str(postResponse.message))
+    ## print('Results: ' + str(postResponse.results))
 
 
 def salesCloud(Lead_Teste):
@@ -91,31 +89,34 @@ def salesCloud(Lead_Teste):
 
     response = requests.request("POST", url, data=payload, headers=headers, params=encoding)
 
-    print("Lead no Salescloud com Sucesso")
-    return "Lead no Salescloud com Sucesso"
-
 
 def main():
     if emailValidator(Lead_Teste):
             body = {
-                "message": "Email não existente. Retornar para o usuário.",
+                "message": "Email nao existente. Retornar para o usuario.",
                 "input": Lead_Teste['email']
             }
-
             response = {
-                "statusCode": 200,
+                "statusCode": 409,
                 "body": json.dumps(body)
             }
-
-            return response
-        else:
-            emailValidator(Lead_Teste)
-
-            salesCloud(Lead_Teste)
-
-            marketingCloud(basesLeads_Gerais, Lead_Teste)
-
-            marketingCloud(basesTotal_Gerais, Lead_Teste)
+            print(response)
+            # return response
+    else:
+        emailValidator(Lead_Teste)
+        salesCloud(Lead_Teste)
+        marketingCloud(basesLeads_Gerais, Lead_Teste)
+        marketingCloud(basesTotal_Gerais, Lead_Teste)
+        body = {
+            "message": "Leads inseridas com sucesso",
+            "input": Lead_Teste
+        }
+        response = {
+            "statusCode": 200,
+            "body": json.dumps(body)
+        }
+        print(response)
+        # return response
 
     
 # ===> Variáveis externas no Lambda:
