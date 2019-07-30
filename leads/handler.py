@@ -30,181 +30,175 @@ config.read("cfg.cfg")
 """
 
 
-def emailValidator(Lead_Teste):
-    email = Lead_Teste['email']
-    splitAddress = email.split('@')
-    domain = str(splitAddress[1])
+def leads(event, context):
+    def emailValidator(Lead_Teste):
+        email = Lead_Teste['email']
+        splitAddress = email.split('@')
+        domain = str(splitAddress[1])
 
-    records = dns.resolver.query(domain, 'MX')
-    mxRecord = records[0].exchange
-    mxRecord = str(mxRecord)
+        records = dns.resolver.query(domain, 'MX')
+        mxRecord = records[0].exchange
+        mxRecord = str(mxRecord)
 
-    server = smtplib.SMTP()
-    server.set_debuglevel(0)
-    server.connect(mxRecord)
-    server.helo(server.local_hostname)
-    server.mail(email)
+        server = smtplib.SMTP()
+        server.set_debuglevel(0)
+        server.connect(mxRecord)
+        server.helo(server.local_hostname)
+        server.mail(email)
 
-    code, message = server.rcpt(str(email))
-    server.quit()
+        code, message = server.rcpt(str(email))
+        server.quit()
 
-    if code != 250:
-        return True
+        if code != 250:
+            return True
 
-def marketingCloud(Bases, Lead_Teste):
-    """
-
-
-    """
-
-    debug = False
-    stubObj = ET_Client.ET_Client(False, debug, Authentication)
-    de = ET_Client.ET_DataExtension_Row()
-    de.CustomerKey = Bases
-    de.auth_stub = stubObj
-    de.props = props1 if de.CustomerKey == basesLeads_Gerais else props2
-    postResponse = de.post()
-
-    # Mensagens de error para debugar depois! Caso necessário:
-    ## print('Post Status: ' + str(postResponse.status))
-    ## print('Code: ' + str(postResponse.code))
-    ## print('Message: ' + str(postResponse.message))
-    ## print('Results: ' + str(postResponse.results))
+    def marketingCloud(Bases, Lead_Teste):
+        """
 
 
-def salesCloud(Lead_Teste):
-    url = "https://webto.salesforce.com/servlet/servlet.WebToLead"
-    encoding = {"encoding":"UTF-8"}
+        """
 
-    headers = {
-        'Content-Type': "application/x-www-form-urlencoded",
-        'Accept': "*/*",
-        'Cache-Control': "no-cache",
-        'Host': "webto.salesforce.com",
-        'Accept-Encoding': "gzip, deflate",
-        'Content-Length': "463",
-        'Connection': "keep-alive",
-        'cache-control': "no-cache"
-    }
+        debug = False
+        stubObj = ET_Client.ET_Client(False, debug, Authentication)
+        de = ET_Client.ET_DataExtension_Row()
+        de.CustomerKey = Bases
+        de.auth_stub = stubObj
+        de.props = props1 if de.CustomerKey == basesLeads_Gerais else props2
+        postResponse = de.post()
 
-    response = requests.request("POST", url, data=payload, headers=headers, params=encoding)
+        # Mensagens de error para debugar depois! Caso necessário:
+        ## print('Post Status: ' + str(postResponse.status))
+        ## print('Code: ' + str(postResponse.code))
+        ## print('Message: ' + str(postResponse.message))
+        ## print('Results: ' + str(postResponse.results))
 
+    def salesCloud(Lead_Teste):
+        url = "https://webto.salesforce.com/servlet/servlet.WebToLead"
+        encoding = {"encoding":"UTF-8"}
 
-def main():
-    if emailValidator(Lead_Teste):
+        headers = {
+            'Content-Type': "application/x-www-form-urlencoded",
+            'Accept': "*/*",
+            'Cache-Control': "no-cache",
+            'Host': "webto.salesforce.com",
+            'Accept-Encoding': "gzip, deflate",
+            'Content-Length': "463",
+            'Connection': "keep-alive",
+            'cache-control': "no-cache"
+        }
+
+        response = requests.request("POST", url, data=payload, headers=headers, params=encoding)
+
+    def main():
+        if emailValidator(Lead_Teste):
+                body = {
+                    "message": "Email nao existente. Retornar para o usuario.",
+                    "input": Lead_Teste['email']
+                }
+                response = {
+                    "statusCode": 409,
+                    "body": json.dumps(body)
+                }
+                print(response)
+                # return response
+        else:
+            emailValidator(Lead_Teste)
+            salesCloud(Lead_Teste)
+            marketingCloud(basesLeads_Gerais, Lead_Teste)
+            marketingCloud(basesTotal_Gerais, Lead_Teste)
             body = {
-                "message": "Email nao existente. Retornar para o usuario.",
-                "input": Lead_Teste['email']
+                "message": "Leads inseridas com sucesso",
+                "input": Lead_Teste
             }
             response = {
-                "statusCode": 409,
+                "statusCode": 200,
                 "body": json.dumps(body)
             }
             print(response)
             # return response
-    else:
-        emailValidator(Lead_Teste)
-        salesCloud(Lead_Teste)
-        marketingCloud(basesLeads_Gerais, Lead_Teste)
-        marketingCloud(basesTotal_Gerais, Lead_Teste)
-        body = {
-            "message": "Leads inseridas com sucesso",
-            "input": Lead_Teste
-        }
-        response = {
-            "statusCode": 200,
-            "body": json.dumps(body)
-        }
-        print(response)
-        # return response
 
-    
-# ===> Variáveis externas no Lambda:
-## estrutura é [Chave Externa, Nome da Base]
-basesLeads_Gerais = ['TESTE-Microservico-Leads-Gerais-5', 'TESTE-Microservico-Leads-Gerais-5'] # Base simulada de Leads-Gerais-5
-basesTotal_Gerais = ['TESTE-Microservico-Total_Emails_Geral_', 'TESTE-Microservico-Total_Emails_Geral_'] # Base simulada de Total_Emails_Geral_
+    # ===> Variáveis externas no Lambda:
+    ## estrutura é [Chave Externa, Nome da Base]
+    # basesLeads_Gerais = ['TESTE-Microservico-Leads-Gerais-5', 'TESTE-Microservico-Leads-Gerais-5'] # Base simulada de Leads-Gerais-5
+    # basesTotal_Gerais = ['TESTE-Microservico-Total_Emails_Geral_', 'TESTE-Microservico-Total_Emails_Geral_'] # Base simulada de Total_Emails_Geral_
 
-Lead_Teste = {
-    "oid": config['LEADS']['oid'],
-    "retURL": config['LEADS']['retURL'],
-    "Cidade_OrigemIP__c": config['LEADS']['Cidade_OrigemIP__c'],
-    "Estado_OrigemIP__c": config['LEADS']['Estado_OrigemIP__c'],
-    "Modo_de_entrada__c": config['LEADS']['Modo_de_entrada__c'],
-    "lead_source": config['LEADS']['lead_source'],
-    "Area_de_Interesse__c": config['LEADS']['Area_de_Interesse__c'],
-    "Concurso_de_Interesse__c": config['LEADS']['Concurso_de_Interesse__c'],
-    "Interesse_Evento__c": config['LEADS']['Interesse_Evento__c'],
-    "recordType": config['LEADS']['recordType'],
-    "first_name": config['LEADS']['first_name'],
-    "email": config['LEADS']['email'],
-    "phone": config['LEADS']['phone']
-}
-
-payload = {
-    "oid": Lead_Teste['oid'],
-    "retURL": Lead_Teste['retURL'],
-    "Cidade_OrigemIP__c": Lead_Teste['Cidade_OrigemIP__c'],
-    "Estado_OrigemIP__c": Lead_Teste['Estado_OrigemIP__c'],
-    "Modo_de_entrada__c": Lead_Teste['Modo_de_entrada__c'],
-    "lead_source": Lead_Teste['lead_source'],
-    "Area_de_Interesse__c": Lead_Teste['Area_de_Interesse__c'],
-    "Concurso_de_Interesse__c": Lead_Teste['Concurso_de_Interesse__c'],
-    "Interesse_Evento__c": Lead_Teste['Interesse_Evento__c'],
-    "recordType": Lead_Teste['recordType'],
-    "first_name": Lead_Teste['first_name'],
-    "email": Lead_Teste['email'],
-    "phone": Lead_Teste['phone']
-}
-
-Authentication = {
-    'clientid': config['MC']['clientid'],
-    'clientsecret': config['MC']['clientsecret'],
-    'defaultwsdl': config['MC']['defaultwsdl'],
-    'authenticationurl': config['MC']['authenticationurl'],
-    'baseapiurl': config['MC']['baseapiurl'],
-    'soapendpoint': config['MC']['soapendpoint'],
-     # 'wsdl_file_local_loc': r'<WSDL_PATH>/ExactTargetWSDL.xml',
-    'useOAuth2Authentication': config['MC']['useOAuth2Authentication'],
-    'accountId': config['MC']['accountId'],
-    # 'scope': '<PERMISSION_LIST>'
-}
-
-
-props1 = {
-    "Cidade de Origem do IP": Lead_Teste['Cidade_OrigemIP__c'],
-    "Estado de Origem do IP": Lead_Teste['Estado_OrigemIP__c'],
-    "Modo de entrada": Lead_Teste['Modo_de_entrada__c'],
-    "Origem do lead": Lead_Teste['lead_source'],
-    "Interesse - Área": Lead_Teste['Area_de_Interesse__c'],
-    "Interesse - Concurso": Lead_Teste['Concurso_de_Interesse__c'],
-    "Interesse - Evento": Lead_Teste['Interesse_Evento__c'],
-    "Nome": Lead_Teste['first_name'],
-    "Email": Lead_Teste['email'],
-    "Telefone": Lead_Teste['phone'],
-    "Data de criação": datetime.now().strftime("%d/%m/%Y"),
-    "Hora de Criação": datetime.now().strftime("%H:%M")
-}
-
-props2 = {
-    "Email": Lead_Teste['email'],
-    "Nome": Lead_Teste['first_name']
-}
-# ===> Variáveis externas no Lambda:
-
-if __name__ == '__main__':
-    main()
-
-
-def hello(event, context):
-    body = {
-        "message": "Go Serverless v1.0! Your function executed successfully!",
-        "input": event
+    Lead_Teste = {
+        "oid": config['LEADS']['oid'],
+        "retURL": config['LEADS']['retURL'],
+        "Cidade_OrigemIP__c": config['LEADS']['Cidade_OrigemIP__c'],
+        "Estado_OrigemIP__c": config['LEADS']['Estado_OrigemIP__c'],
+        "Modo_de_entrada__c": config['LEADS']['Modo_de_entrada__c'],
+        "lead_source": config['LEADS']['lead_source'],
+        "Area_de_Interesse__c": config['LEADS']['Area_de_Interesse__c'],
+        "Concurso_de_Interesse__c": config['LEADS']['Concurso_de_Interesse__c'],
+        "Interesse_Evento__c": config['LEADS']['Interesse_Evento__c'],
+        "recordType": config['LEADS']['recordType'],
+        "first_name": config['LEADS']['first_name'],
+        "email": config['LEADS']['email'],
+        "phone": config['LEADS']['phone']
     }
 
-    response = {
-        "statusCode": 200,
-        "body": json.dumps(body)
+    payload = {
+        "oid": Lead_Teste['oid'],
+        "retURL": Lead_Teste['retURL'],
+        "Cidade_OrigemIP__c": Lead_Teste['Cidade_OrigemIP__c'],
+        "Estado_OrigemIP__c": Lead_Teste['Estado_OrigemIP__c'],
+        "Modo_de_entrada__c": Lead_Teste['Modo_de_entrada__c'],
+        "lead_source": Lead_Teste['lead_source'],
+        "Area_de_Interesse__c": Lead_Teste['Area_de_Interesse__c'],
+        "Concurso_de_Interesse__c": Lead_Teste['Concurso_de_Interesse__c'],
+        "Interesse_Evento__c": Lead_Teste['Interesse_Evento__c'],
+        "recordType": Lead_Teste['recordType'],
+        "first_name": Lead_Teste['first_name'],
+        "email": Lead_Teste['email'],
+        "phone": Lead_Teste['phone']
     }
 
-    return response
+    Authentication = {
+        'clientid': config['MC']['clientid'],
+        'clientsecret': config['MC']['clientsecret'],
+        'defaultwsdl': config['MC']['defaultwsdl'],
+        'authenticationurl': config['MC']['authenticationurl'],
+        'baseapiurl': config['MC']['baseapiurl'],
+        'soapendpoint': config['MC']['soapendpoint'],
+        # 'wsdl_file_local_loc': r'<WSDL_PATH>/ExactTargetWSDL.xml',
+        'useOAuth2Authentication': config['MC']['useOAuth2Authentication'],
+        'accountId': config['MC']['accountId'],
+        # 'scope': '<PERMISSION_LIST>'
+    }
 
+    props1 = {
+        "Cidade de Origem do IP": Lead_Teste['Cidade_OrigemIP__c'],
+        "Estado de Origem do IP": Lead_Teste['Estado_OrigemIP__c'],
+        "Modo de entrada": Lead_Teste['Modo_de_entrada__c'],
+        "Origem do lead": Lead_Teste['lead_source'],
+        "Interesse - Área": Lead_Teste['Area_de_Interesse__c'],
+        "Interesse - Concurso": Lead_Teste['Concurso_de_Interesse__c'],
+        "Interesse - Evento": Lead_Teste['Interesse_Evento__c'],
+        "Nome": Lead_Teste['first_name'],
+        "Email": Lead_Teste['email'],
+        "Telefone": Lead_Teste['phone'],
+        "Data de criação": datetime.now().strftime("%d/%m/%Y"),
+        "Hora de Criação": datetime.now().strftime("%H:%M")
+    }
+
+    props2 = {
+        "Email": Lead_Teste['email'],
+        "Nome": Lead_Teste['first_name']
+    }
+    # ===> Variáveis externas no Lambda:
+    if __name__ == '__main__':
+        main()
+
+# def hello(event, context):
+#     body = {
+#         "message": "Go Serverless v1.0! Your function executed successfully!",
+#         "input": event
+#     }
+# 
+#     response = {
+#         "statusCode": 200,
+#         "body": json.dumps(body)
+#     }
+# 
+#     return response
