@@ -1,11 +1,3 @@
-# package directories
-node_modules
-jspm_packages
-
-# Serverless directories
-.serverless
-Others
-
 # Distribution / packaging
 .Python
 *.pyc
@@ -29,5 +21,9 @@ var/
 .serverless
 
 # Others
-leads\cfg.cfg
-leads\config.json
+config.json
+cfg.cfg
+serverless.yml
+.vscode
+venv
+node_modules
