@@ -27,3 +27,4 @@ serverless.yml
 .vscode
 venv
 node_modules
+commands.txt
