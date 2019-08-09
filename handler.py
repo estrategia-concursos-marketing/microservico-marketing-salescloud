@@ -18,16 +18,16 @@ from datetime import datetime
     a. Leads_Gerais_5
     b. Total_Base_Geral_
     Lembrando que para acessar essas informações, elas estão salvas como variáveis no Lambda.
-  3. Envia os dados para as leads no SalesCloud, para uso do comercial;
-  4. Salva também como uma nova linha em um CSV no S3 da conta do MKT/BI. Para CASO acontecer algum problema entre os dois serviços, mas a lead não ser perdida.
+  3. Envia os dados para as leads no SalesCloud, para uso do comercial.
 
   Qualquer PROBLEMA, entre em contato com a equipe de BI e CRM, responsáveis pela produção desse microserviço.
 """
-# context = "1"
-# event = {'key': '1', 'body': 'oid=%2000D41000001Q9k8&retURL=https%3A%2F%2Fwww.estrategiaconcursos.com.br%2Fgratis%2Fsucesso-vade-mecum-delagado-pc-rj%2F&Cidade_OrigemIP__c=Barueri&Estado_OrigemIP__c=Sao%20Paulo&Modo_de_entrada__c=landing-page&lead_source=Landing%20Page&Area_de_Interesse__c=agencias-reguladoras&Concurso_de_Interesse__c=detran-sp&Interesse_Evento__c=Teste-MIcroservico&recordType=01241000001AP21&first_name=Israel&email=israel.mendez232%40gmail.com&phone=%2811%29%2094469-1991'}
+
+# context = '1'
+# event = {'key': '1', 'body': 'oid=%2000D41000001Q9k8&retURL=https%3A%2F%2Fwww.estrategiaconcursos.com.br%2Fgratis%2Fsucesso-vade-mecum-delagado-pc-rj%2F&Cidade_OrigemIP__c=Barueri&Estado_OrigemIP__c=Sao%20Paulo&Modo_de_entrada__c=landing-page&lead_source=Landing%20Page&Area_de_Interesse__c=agencias-reguladoras&Concurso_de_Interesse__c=detran-sp&Interesse_Evento__c=Teste-MIcroservico&recordType=01241000001AP21&first_name=Israel&email=israel.mendes@estrategiaconcursos.com.br&phone=%2811%29%2094469-1991'}
 
 def add(event, context):
-    def emailValidator(event):
+    def emailValidator(email):
         splitAddress = email.split('@')
         domain = str(splitAddress[1])
     
@@ -44,18 +44,25 @@ def add(event, context):
         code, message = server.rcpt(str(email))
         server.quit()
         if code == 250:
-            return "existingEmail"
+            return 'existingEmail'
         else:
-            return "notExistingEmail"
+            return 'notExistingEmail'
 
 
-    def marketingCloud(bases, authentication, event):
-        """
-
-        """
-
-        debug = False
-        stubObj = ET_Client.ET_Client(False, debug, authentication)
+    def marketingCloud(bases, event):
+        stubObj = ET_Client.ET_Client(
+            False, False,
+            {
+                'clientid': os.environ['clientid'],
+                'clientsecret': os.environ['clientsecret'],
+                'defaultwsdl': 'https://webservice.exacttarget.com/etframework.wsdl',
+                'authenticationurl': os.environ['authenticationurl'],
+                'baseapiurl': os.environ['baseapiurl'],
+                'soapendpoint': os.environ['soapendpoint'],
+                'wsdl_file_local_loc': r'var\task\FuelSDK\ExactTargetWSDL.xml',
+                'useOAuth2Authentication': 'True',
+                'accountId': os.environ['accountId']
+            })
         de = ET_Client.ET_DataExtension_Row()
         de.CustomerKey = bases
         de.auth_stub = stubObj
@@ -69,105 +76,91 @@ def add(event, context):
         ## print("Results: " + str(postResponse.results))
 
     def salesCloud(event):
-        url = "https://webto.salesforce.com/servlet/servlet.WebToLead"
-        encoding = {"encoding":"UTF-8"}
+        url = 'https://webto.salesforce.com/servlet/servlet.WebToLead'
+        encoding = {'encoding':'UTF-8'}
 
         headers = {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Accept": "*/*",
-            "Cache-Control": "no-cache",
-            "Host": "webto.salesforce.com",
-            "Accept-Encoding": "gzip, deflate",
-            "Content-Length": "463",
-            "Connection": "keep-alive",
-            "cache-control": "no-cache"
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': '*/*',
+            'Cache-Control': 'no-cache',
+            'Host': 'webto.salesforce.com',
+            'Accept-Encoding': 'gzip, deflate',
+            'Content-Length': '463',
+            'Connection': 'keep-alive',
+            'cache-control': 'no-cache'
         }
 
-        response = requests.request("POST", url, data=payload, headers=headers, params=encoding)
+        response = requests.request('POST', url, data=payload, headers=headers, params=encoding)
 
-    event = urllib.parse.parse_qs(event["body"])
+    event = urllib.parse.parse_qs(event['body'])
 
     def transform(element):
-        return str(element).replace("['","").replace("']", "")
+        return str(element).replace("['",'').replace("']", '')
     
-    email = transform(event["email"])
+    email = transform(event['email'])
 
     payload = {
-        "oid": transform(event["oid"]),
-        "retURL": transform(event["retURL"]),
-        "Cidade_OrigemIP__c": transform(event["Cidade_OrigemIP__c"]),
-        "Estado_OrigemIP__c": transform(event["Estado_OrigemIP__c"]),
-        "Modo_de_entrada__c": transform(event["Modo_de_entrada__c"]),
-        "lead_source": transform(event["lead_source"]),
-        "Area_de_Interesse__c": transform(event["Area_de_Interesse__c"]),
-        "Concurso_de_Interesse__c": transform(event["Concurso_de_Interesse__c"]),
-        "Interesse_Evento__c": transform(event["Interesse_Evento__c"]),
-        "recordType": transform(event["recordType"]),
-        "first_name": transform(event["first_name"]),
-        "email": transform(event["email"]),
-        "phone": transform(event["phone"])
-    }
-
-    authentication = {
-        "clientid": os.getenv("clientid"),
-        "clientsecret": os.getenv("clientsecret"),
-        "defaultwsdl": os.getenv("defaultwsdl"),
-        "authenticationurl": os.getenv("authenticationurl"),
-        "baseapiurl": os.getenv("baseapiurl"),
-        "soapendpoint": os.getenv("soapendpoint"),
-        # "wsdl_file_local_loc": r"<WSDL_PATH>/ExactTargetWSDL.xml",
-        "useOAuth2authentication": True,
-        "accountId": os.getenv("accountId"),
-        # "scope": "<PERMISSION_LIST>"
+        'oid': transform(event['oid']),
+        'retURL': transform(event['retURL']),
+        'Cidade_OrigemIP__c': transform(event['Cidade_OrigemIP__c']),
+        'Estado_OrigemIP__c': transform(event['Estado_OrigemIP__c']),
+        'Modo_de_entrada__c': transform(event['Modo_de_entrada__c']),
+        'lead_source': transform(event['lead_source']),
+        'Area_de_Interesse__c': transform(event['Area_de_Interesse__c']),
+        'Concurso_de_Interesse__c': transform(event['Concurso_de_Interesse__c']),
+        'Interesse_Evento__c': transform(event['Interesse_Evento__c']),
+        'recordType': transform(event['recordType']),
+        'first_name': transform(event['first_name']),
+        'email': transform(event['email']),
+        'phone': transform(event['phone'])
     }
 
     props1 = {
-        "Cidade de Origem do IP": transform(event["Cidade_OrigemIP__c"]),
-        "Estado de Origem do IP": transform(event["Estado_OrigemIP__c"]),
-        "Modo de entrada": transform(event["Modo_de_entrada__c"]),
-        "Origem do lead": transform(event["lead_source"]),
-        "Interesse - Área": transform(event["Area_de_Interesse__c"]),
-        "Interesse - Concurso": transform(event["Concurso_de_Interesse__c"]),
-        "Interesse - Evento": transform(event["Interesse_Evento__c"]),
-        "Nome": transform(event["first_name"]),
-        "Email": transform(event["email"]),
-        "Telefone": transform(event["phone"]),
-        "Data de criação": datetime.now().strftime("%d/%m/%Y"),
-        "Hora de Criação": datetime.now().strftime("%H:%M")
+        'Cidade de Origem do IP': transform(event['Cidade_OrigemIP__c']),
+        'Estado de Origem do IP': transform(event['Estado_OrigemIP__c']),
+        'Modo de entrada': transform(event['Modo_de_entrada__c']),
+        'Origem do lead': transform(event['lead_source']),
+        'Interesse - Área': transform(event['Area_de_Interesse__c']),
+        'Interesse - Concurso': transform(event['Concurso_de_Interesse__c']),
+        'Interesse - Evento': transform(event['Interesse_Evento__c']),
+        'Nome': transform(event['first_name']),
+        'Email': transform(event['email']),
+        'Telefone': transform(event['phone']),
+        'Data de criação': datetime.now().strftime('%d/%m/%Y'),
+        'Hora de Criação': datetime.now().strftime('%H:%M')
     }
 
     props2 = {
-        "Email": transform(event["email"]),
-        "Nome": transform(event["first_name"])
+        'Email': transform(event['email']),
+        'Nome': transform(event['first_name'])
     }
 
-    basesLeads_Gerais = os.getenv("TESTE-Microservico-Leads-Gerais-5")
-    basesTotal_Gerais = os.getenv("TESTE-Microservico-Total_Emails_Geral_")
+    basesLeads_Gerais = 'TESTE-Microservico-Leads-Gerais-5'
+    basesTotal_Gerais = 'TESTE-Microservico-Total_Emails_Geral_'
 
     # Principal do Microserviço
-    if emailValidator(event) == 'notExistingEmail':
+    if emailValidator(email) == 'notExistingEmail':
         body = {
-            "message": "Email nao existente. Retornar para o usuario.",
-            "input": transform(event["email"])
+            'message': 'Email nao existente. Retornar para o usuario.',
+            'input': email
         }
         response = {
-            "statusCode": 409,
-            "body": json.dumps(body)
+            'statusCode': 409,
+            'body': json.dumps(body)
         }
         print(response)
         return response
     else:
-        emailValidator(event)
         salesCloud(event)
-        marketingCloud(basesLeads_Gerais, authentication, event)
-        marketingCloud(basesTotal_Gerais, authentication, event)
+        marketingCloud(basesLeads_Gerais, event)
+        marketingCloud(basesTotal_Gerais, event)
         body = {
-            "message": "Leads inseridas com sucesso",
-            "input": event
+            'message': 'Leads inseridas com sucesso',
+            'input': event
         }
         response = {
-            "statusCode": 200,
-            "body": json.dumps(body)
+            'statusCode': 200,
+            'body': json.dumps(body)
         }
         print(response)
         return response
