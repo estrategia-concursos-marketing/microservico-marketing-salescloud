@@ -24,9 +24,28 @@ from datetime import datetime
 """
 
 # context = '1'
-# event = {'key': '1', 'body': 'oid=%2000D41000001Q9k8&retURL=https%3A%2F%2Fwww.estrategiaconcursos.com.br%2Fgratis%2Fsucesso-vade-mecum-delagado-pc-rj%2F&Cidade_OrigemIP__c=Barueri&Estado_OrigemIP__c=Sao%20Paulo&Modo_de_entrada__c=landing-page&lead_source=Landing%20Page&Area_de_Interesse__c=agencias-reguladoras&Concurso_de_Interesse__c=detran-sp&Interesse_Evento__c=Teste-MIcroservico&recordType=01241000001AP21&first_name=Israel&email=israel.mendes@estrategiaconcursos.com.br&phone=%2811%29%2094469-1991'}
+# event = {
+#     "key": "1",
+#     "body": {
+#         "oid": "00D41000001Q9k8",
+#         "retURL": "https://www.estrategiaconcursos.com.br/gratis/sucesso/",
+#         "Cidade_OrigemIP__c": "Barueri",
+#         "Estado_OrigemIP__c": "Sao Paulo",
+#         "Modo_de_entrada__c": "landing-page",
+#         "lead_source": "Landing Page",
+#         "Area_de_Interesse__c": "tribunais",
+#         "Concurso_de_Interesse__c": "",
+#         "Interesse_Evento__c": "TJ CE e TJ AM",
+#         "recordType": "01241000001AP21",
+#         "first_name": "",
+#         "email": "israel.mendes2323232@estrategiaconcursos.com.br",
+#         "phone": ""
+#       }
+#   }
 
 def add(event, context):
+    event = event['body']
+
     def emailValidator(email):
         splitAddress = email.split('@')
         domain = str(splitAddress[1])
@@ -53,15 +72,24 @@ def add(event, context):
         stubObj = ET_Client.ET_Client(
             False, False,
             {
-                'clientid': os.environ['clientid'],
-                'clientsecret': os.environ['clientsecret'],
+                'clientid': 'frd0kjo8x032pu3bcd4pxpn4',
+                'clientsecret': 'AD0fLFSqfrTkPnXpRCo5Nn2w',
                 'defaultwsdl': 'https://webservice.exacttarget.com/etframework.wsdl',
-                'authenticationurl': os.environ['authenticationurl'],
-                'baseapiurl': os.environ['baseapiurl'],
-                'soapendpoint': os.environ['soapendpoint'],
-                'wsdl_file_local_loc': r'var\task\FuelSDK\ExactTargetWSDL.xml',
+                'authenticationurl': 'https://mck0g3r840gk4n89wnf1-q7jml7y.auth.marketingcloudapis.com/',
+                'baseapiurl': 'https://mck0g3r840gk4n89wnf1-q7jml7y.rest.marketingcloudapis.com/',
+                'soapendpoint': 'https://mck0g3r840gk4n89wnf1-q7jml7y.soap.marketingcloudapis.com/',
+                'wsdl_file_local_loc': r'/tmp/ExactTargetWSDL.xml',
                 'useOAuth2Authentication': 'True',
-                'accountId': os.environ['accountId']
+                'accountId': '100002066'
+                # 'clientid': os.environ['clientid'],
+                # 'clientsecret': os.environ['clientsecret'],
+                # 'defaultwsdl': 'https://webservice.exacttarget.com/etframework.wsdl',
+                # 'authenticationurl': os.environ['authenticationurl'],
+                # 'baseapiurl': os.environ['baseapiurl'],
+                # 'soapendpoint': os.environ['soapendpoint'],
+                # 'wsdl_file_local_loc': r'ExactTargetWSDL.xml',
+                # 'useOAuth2Authentication': 'True',
+                # 'accountId': os.environ['accountId']
             })
         de = ET_Client.ET_DataExtension_Row()
         de.CustomerKey = bases
@@ -91,52 +119,50 @@ def add(event, context):
         }
 
         response = requests.request('POST', url, data=payload, headers=headers, params=encoding)
-
-    event = urllib.parse.parse_qs(event['body'])
-
-    def transform(element):
-        return str(element).replace("['",'').replace("']", '')
     
-    email = transform(event['email'])
+    email = event['email']
 
     payload = {
-        'oid': transform(event['oid']),
-        'retURL': transform(event['retURL']),
-        'Cidade_OrigemIP__c': transform(event['Cidade_OrigemIP__c']),
-        'Estado_OrigemIP__c': transform(event['Estado_OrigemIP__c']),
-        'Modo_de_entrada__c': transform(event['Modo_de_entrada__c']),
-        'lead_source': transform(event['lead_source']),
-        'Area_de_Interesse__c': transform(event['Area_de_Interesse__c']),
-        'Concurso_de_Interesse__c': transform(event['Concurso_de_Interesse__c']),
-        'Interesse_Evento__c': transform(event['Interesse_Evento__c']),
-        'recordType': transform(event['recordType']),
-        'first_name': transform(event['first_name']),
-        'email': transform(event['email']),
-        'phone': transform(event['phone'])
+        'oid': event['oid'],
+        'retURL': event['retURL'],
+        'Cidade_OrigemIP__c': event['Cidade_OrigemIP__c'],
+        'Estado_OrigemIP__c': event['Estado_OrigemIP__c'],
+        'Modo_de_entrada__c': event['Modo_de_entrada__c'],
+        'lead_source': event['lead_source'],
+        'Area_de_Interesse__c': event['Area_de_Interesse__c'],
+        'Concurso_de_Interesse__c': event['Concurso_de_Interesse__c'],
+        'Interesse_Evento__c': event['Interesse_Evento__c'],
+        'recordType': event['recordType'],
+        'first_name': event['first_name'],
+        'email': event['email'],
+        'phone': event['phone']
     }
 
     props1 = {
-        'Cidade de Origem do IP': transform(event['Cidade_OrigemIP__c']),
-        'Estado de Origem do IP': transform(event['Estado_OrigemIP__c']),
-        'Modo de entrada': transform(event['Modo_de_entrada__c']),
-        'Origem do lead': transform(event['lead_source']),
-        'Interesse - Área': transform(event['Area_de_Interesse__c']),
-        'Interesse - Concurso': transform(event['Concurso_de_Interesse__c']),
-        'Interesse - Evento': transform(event['Interesse_Evento__c']),
-        'Nome': transform(event['first_name']),
-        'Email': transform(event['email']),
-        'Telefone': transform(event['phone']),
+        'Cidade de Origem do IP': event['Cidade_OrigemIP__c'],
+        'Estado de Origem do IP': event['Estado_OrigemIP__c'],
+        'Modo de entrada': event['Modo_de_entrada__c'],
+        'Origem do lead': event['lead_source'],
+        'Interesse - Área': event['Area_de_Interesse__c'],
+        'Interesse - Concurso': event['Concurso_de_Interesse__c'],
+        'Interesse - Evento': event['Interesse_Evento__c'],
+        'Nome': event['first_name'],
+        'Email': event['email'],
+        'Telefone': event['phone'],
         'Data de criação': datetime.now().strftime('%d/%m/%Y'),
         'Hora de Criação': datetime.now().strftime('%H:%M')
     }
 
     props2 = {
-        'Email': transform(event['email']),
-        'Nome': transform(event['first_name'])
+        'Email': event['email'],
+        'Nome': event['first_name']
     }
 
     basesLeads_Gerais = 'TESTE-Microservico-Leads-Gerais-5'
     basesTotal_Gerais = 'TESTE-Microservico-Total_Emails_Geral_'
+
+    # basesLeads_Gerais = os.environ['basesLeads_Gerais']
+    # basesTotal_Gerais = os.environ['basesTotal_Gerais']
 
     # Principal do Microserviço
     if emailValidator(email) == 'notExistingEmail':
@@ -145,8 +171,13 @@ def add(event, context):
             'input': email
         }
         response = {
-            'statusCode': 409,
-            'body': json.dumps(body)
+            statusCode: 409,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': true,
+                'Content-Type': 'application/json',
+            },
+            body: json.dumps(body)
         }
         print(response)
         return response
@@ -159,8 +190,13 @@ def add(event, context):
             'input': event
         }
         response = {
-            'statusCode': 200,
-            'body': json.dumps(body)
+            statusCode: 200,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Credentials': true,
+                'Content-Type': 'application/json',
+            },
+            body: json.dumps(body)
         }
         print(response)
         return response

@@ -1,0 +1,564 @@
+<!--- Não usamos tag de HTML, HEAD e BODY pois ele buga o junto com o DIV do Wordpress. Procure evitar por enquanto, se possível. -->
+<script type='text/javascript' src='https://www.estrategiaconcursos.com.br/gratis/wp-includes/js/jquery/jquery.js?ver=1.12.4-wp'></script>
+<script type='text/javascript' src='https://www.estrategiaconcursos.com.br/gratis/wp-includes/js/jquery/jquery-migrate.min.js?ver=1.4.1'></script>
+
+<style>
+    #forms {
+        background-color: transparent;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    #forms_layout {
+        margin: auto;
+        max-height: 500px;
+        max-width: 430px;
+        background: transparent;
+        border-radius: 10px;
+        overflow: hidden;
+        padding-top: 30px;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    @media (max-width: 576px) {
+        #forms_layout {
+            padding: 20px;
+            max-width: 280px;
+            }
+
+        .container_checkbox {
+            min-width: 100%;
+        }
+    }
+
+    .inputs_no_display_forms {
+        display: none;
+    }
+
+    .labels{
+        width: 100%;
+        position: relative;
+        border-bottom: 2px solid #fff;
+        box-shadow: 0 0.2em 0.1em -0.1em rgba(0,0,0,0.4);
+        margin-bottom: 30px;
+    }
+
+    .input_labels {
+        border: none;
+        text-transform: capitalize;
+        display: block;
+        width: 100%;
+        font-size: 1.6em;
+        font-weight: bolder;
+        letter-spacing: 0.02em;
+        text-shadow: 0em 0.1em 0.1em rgba(0,0,0,0.9);
+        color: #fff;
+        line-height: 1.2;
+        background-color: transparent !important;
+    }
+
+    /* -----> Animação dos Placeholders no Input <----- */
+    .placeholder_input {
+        text-shadow: 0em 0.1em 0.1em rgba(0,0,0,0.9);
+        position: absolute;
+        display: block;
+        width: 100%;
+        height: 100%;
+        color: #fff;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .placeholder_input::before {
+        content: '';
+        display: block;
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        -webkit-transition: all 0.4s;
+        -o-transition: all 0.4s;
+        -moz-transition: all 0.4s;
+        transition: all 0.4s;
+    }
+
+    .placeholder_input::after {
+        content: attr(data-placeholder);
+        display: block;
+        width: 100%;
+        position: absolute;
+        top: 0px;
+        left: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        font-weight: bolder;
+        letter-spacing: 0.02em;
+        font-size: 1.6em;
+        line-height: 1.2;
+        -webkit-transition: all 0.4s;
+        -o-transition: all 0.4s;
+        -moz-transition: all 0.4s;
+        transition: all 0.4s;
+    }
+
+    input.input_labels {
+        height: 45px;
+        border: 0px;
+    }
+
+    input.input_labels + .placeholder_input::after {
+        top: 10px;
+        left: 0;
+    }
+
+    textarea.input_labels {
+        min-height: 115px;
+        padding-top: 13px;
+        padding-bottom: 13px;
+    }
+
+    .input_labels:focus + .placeholder_input::after {
+        color: transparent;
+        text-shadow: none;
+    }
+
+    .input_labels:focus + .placeholder_input::before {
+        width: 100%;
+        color: #fff;
+    }
+
+    .has_val.input_labels + .placeholder_input::after {
+        color: transparent;
+        text-shadow: none;
+    }
+
+    .has_val.input_labels + .placeholder_input::before {
+        width: 100%;
+        color: transparent;
+    }
+    /* -----> FIM da Animação <----- */
+
+    .message_error {
+        display: none; 
+        position: relative; 
+        top: -18px; 
+        color: red; 
+        font-weight: bolder;
+        letter-spacing: 0.02em;
+        font-size: 1.2em;
+        text-shadow: 0em 0.1em 0.1em rgba(0,0,0,0.9);
+    }
+    
+    .container_checkbox {
+        width: 60%;
+        margin: auto;
+        color: #fff; 
+        font-size: 0.8em; 
+        font-family: Arial, Helvetica, sans-serif;        
+        text-shadow: 0em 0.1em 0.1em rgba(0,0,0,0.9);
+        line-height: 1.5; 
+        display: block;
+        position: relative;
+        padding: 20px 0px 7px 35px;
+        cursor: pointer;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    .container_checkbox input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+    }
+
+    .checkbox {
+        position: absolute;
+        margin: 25px 0px 0px 5px;
+        top: 0;
+        left: 0;
+        height: 20px;
+        width: 20px;
+        border-radius: 3px;
+        background-color: #B27E17;
+    }
+
+    .container_checkbox:hover input ~ .checkbox {
+        background-color: #B27E17;
+        transition: all 0.3s ease;
+        transition-delay: 0.15s;
+    }
+
+    .container_checkbox input:checked ~ .checkbox {
+        background-color: #1d61c4;
+    }
+
+    .checkbox:after {
+        content: '';
+        position: flex;
+        margin: auto;
+        display: none;
+        transition: all 0.3s ease;
+        transition-delay: 0.15s;
+    }
+
+    .container_checkbox input:checked ~ .checkbox:after {
+        display: flex;
+        transition: all 0.3s ease;
+        transition-delay: 0.15s;
+
+    }
+
+    .container_checkbox .checkbox:after {
+        margin: auto;
+        position: relative;
+        top: 2px;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 3px 3px 0;
+        -webkit-transform: rotate(45deg);
+        -ms-transform: rotate(45deg);
+        transform: rotate(45deg);
+        transition: all 0.3s ease;
+        transition-delay: 0.15s;
+    }
+
+    .button_layout {
+        outline: none !important;
+        border: none;                
+        display: flex;
+        flex-wrap: wrap;
+        position: relative;
+        margin: 0 auto;
+        width: 70%;
+        height: 50px;
+        background-color: #2376dc;
+        color: #fff;
+        justify-content: center;
+        align-items: center;
+        padding: 0 10px;
+        font-weight: bolder;
+        letter-spacing: 0.02em;
+        font-size: 18px;
+        line-height: 1.2;                
+        border-radius: 5px;
+        -webkit-transition-duration: 0.4s;
+        transition-duration: 0.4s;
+        cursor: pointer;
+    }
+
+    .button_layout:hover {
+        background-color: #144b9b;
+    }
+
+    .politics_privacy_ahref {
+        text-decoration: none; 
+        color: #FFF;
+        font-weight: bolder;
+        text-decoration: underline;
+    }
+</style>
+
+<div id='forms'>
+    <form id='forms_layout'>
+
+        <!--- Inputs para Definir Área, Concurso, Evento e do próprio Formulário. NÃO RETIRAR E TOMAR CUIDADO AO ALTERAR! -->
+        <div class='inputs_no_display_forms'>
+            <input id='oid' name='oid' value='00D41000001Q9k8'>
+            <input id='sucess_page_form' name='retURL' value='https://www.estrategiaconcursos.com.br/gratis/sucesso/'>
+            <input id='Cidade_OrigemIP__c' maxlength='200' name='Cidade_OrigemIP__c' size='20' type='text' /><br>
+            <input id='Estado_OrigemIP__c' maxlength='200' name='Estado_OrigemIP__c' size='20' type='text' /><br>
+            <input name='Modo_de_entrada__c' id='Modo_de_entrada__c' maxlength='255' size='20' value='landing-page'>
+            <input name='lead_source' id='lead_source' maxlength='255' size='20' value='Landing Page'>
+            <input name='Area_de_Interesse__c' id='Area_de_Interesse__c' maxlength='30' size='20' value='tribunais'>
+            <input name='Concurso_de_Interesse__c' id='Concurso_de_Interesse__c' maxlength='255' size='20' value=''>
+            <input name='Interesse_Evento__c' id='Interesse_Evento__c' maxlength='255' size='20' value=''>
+            <select  id='recordType' name='recordType'>
+                <option value='01241000001AP21'>Lead Marketing</option>
+            </select>
+        </div>  
+
+        <div>
+            <div class='first_name labels'>
+                <input class='input_labels' id='first_name' maxlength='40' name='first_name' size='20' required>
+                <span class='placeholder_input' data-placeholder='NOME'></span>                        
+            </div>
+            <span id='first_name_message_error' class='message_error'>Nome obrigatório.</span>  
+
+            <div class='email labels'>
+                <input class='input_labels' id='email' maxlength='80' name='email' type='email' size='20' required style='text-transform: lowercase; color: #fff !important;'>
+                <span class='placeholder_input' data-placeholder='EMAIL'></span>                        
+            </div>
+            <span id='email_message_error' class='message_error'>Email inválido.</span>  
+
+            <div class='phone labels'>
+                <input class='input_labels' id='phone' maxlength='15' name='phone' size='20'>
+                <span class='placeholder_input' data-placeholder='TELEFONE'></span>         
+            </div>
+        </div>
+
+        <div>
+            <button class='button_layout' type='button' onclick='checaValidadeEmail()'>
+                <b>Inscreva-se gratuitamente</b>
+            </button>
+        </div>
+        
+        <label class='container_checkbox'>
+                Você concorda com a nossa <a class='politics_privacy_ahref' href='https://www.estrategiaconcursos.com.br/gratis/politica-de-privacidade/' target='_blank'>Política de Privacidade</a> e aceita receber informações adicionais do Estratégia Educacional.
+                <input id='checkbox_layout' type='checkbox' checked='checked' required>
+                <span class='checkbox'></span>
+        </label>
+
+    </form>
+</div>
+
+<script>
+    /* ===== Página de Sucesso Referente à Área ===== */
+    let successEl = document.getElementById('sucesso');
+    if (successEl) {
+        let pageType = successEl.innerHTML;
+        const sucesso_normal = 'https://www.estrategiaconcursos.com.br/gratis/sucesso/';
+        const area = document.getElementById('Area_de_Interesse__c').value;
+
+        if (pageType == sucesso_normal) {
+            switch (area) {
+            case 'ENEM':
+                pageType = 'https://www.estrategiaconcursos.com.br/gratis/pagina-sucesso-enem/';
+                break;
+            case 'judiciario':
+                pageType = 'https://www.estrategiaconcursos.com.br/gratis/sucesso-carreira-juridica/';
+                break;
+            case 'oab':
+                pageType = 'https://www.estrategiaoab.com.br/gratis/sucesso/';
+                break;
+            case 'Unyleya':
+                pageType = 'https://www.estrategiaconcursos.com.br/gratis/pagina-sucesso-unyleya/';
+                break;
+            default:
+                pageType = 'https://www.estrategiaconcursos.com.br/gratis/sucesso/';
+                break;
+            }
+        }
+        document.getElementById('sucess_page_form').value = pageType;
+    }
+
+    /* ===== Capta Cidade e Estado através do IP ===== */
+    jQuery.getJSON('https://extreme-ip-lookup.com/json/', function(data) {
+        jQuery('#Cidade_OrigemIP__c').val(data.city);
+        jQuery('#Estado_OrigemIP__c').val(data.region);
+    });
+    
+    /* ===== Definição da Origem da Lead: NÃO RETIRAR ===== */
+    var ModoDeEntrada = document.getElementById('Modo_de_entrada__c');
+    var Referrer = document.referrer;
+    const Source = new URL(decodeURI(window.location.href)).searchParams.get('utm_source');
+    
+    if (Source && Source.length > 0) {
+        const Medium = new URL(decodeURI(window.location.href)).searchParams.get('utm_medium');
+        ModoDeEntrada.setAttribute('value', Source + ' / ' + Medium);
+    } else {
+        if (Referrer.includes('google')) {
+        ModoDeEntrada.setAttribute('value', 'google');
+        }
+        if (Referrer.includes('/blog/')) {
+        ModoDeEntrada.setAttribute('value', 'blog');
+        }
+        if (Referrer.includes('facebook')) {
+        ModoDeEntrada.setAttribute('value', 'facebook');
+        }
+        if (Referrer.includes('instagram')) {
+        ModoDeEntrada.setAttribute('value', 'instagram');
+        }
+        if (Referrer.includes('bing')) {
+        ModoDeEntrada.setAttribute('value', 'bing');
+        }
+        if (Referrer.includes('youtube')) {
+        ModoDeEntrada.setAttribute('value', 'youtube');
+        }
+        if (Referrer.includes('twitter')) {
+        ModoDeEntrada.setAttribute('value', 'twitter');
+        }
+        if (Referrer.includes('linkedin')) {
+        ModoDeEntrada.setAttribute('value', 'linkedin');
+        }
+        if (Referrer.includes('pinterest')) {
+        ModoDeEntrada.setAttribute('value', 'pinterest');
+        }
+        if (Referrer.includes('tumblr')) {
+        ModoDeEntrada.setAttribute('value', 'tumblr');
+        }
+        if (Referrer.includes('salesforce.com')) {
+        ModoDeEntrada.setAttribute('value', 'salescloud');
+        }
+        if (Referrer.includes('salesforce.com')) {
+        ModoDeEntrada.setAttribute('value', 'salescloud');
+        }
+    }
+
+    /* ===== Título da Página (title) como Interesse Evento ===== */
+    const titleEl = document.getElementsByTagName('title')[0];
+    if (titleEl) {
+        const title = titleEl.innerHTML;
+        if (title.includes(' | Estratégia Concursos')) {
+            var resum = title.substring(0, title.indexOf(' | Estratégia Concursos'));
+            document.getElementById('Interesse_Evento__c').value = resum;
+        } else {
+            document.getElementById('Interesse_Evento__c').value = title;
+        }
+    }
+    
+
+    /* ===== Valida Email na Formatação Correta ===== */
+    function validateEmail(email) {
+        var re = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+        return re.test(email);
+    }
+    function beforeSubmit(){
+        var email = jQuery('.message_error input[name='/email/']'); 
+        var emailStr = email.val().trim();
+        if(!validateEmail(emailStr)) {
+        showValidate(email);
+        check=false;
+        }
+        return check;
+    } 
+    function showValidate(input) {
+        var thisAlert = input.parent();
+        jQuery(thisAlert).addClass('message_error');
+    }
+
+    /* ===== Descobre se o Email Existe ou Não (API BriteVerify) -> Evita Emails Desconhecidos e Sujos na Base ===== */
+    function checaValidadeEmail(){
+        const name = jQuery('#first_name').val();
+        const email = jQuery('#email').val();
+        const terms = jQuery('#checkbox_layout').get(0).checked;
+        
+        const nameError = jQuery('#first_name_message_error');
+        const emailError = jQuery('#email_message_error');
+        
+        const form = jQuery('#forms_layout');
+
+        if (name === '') {
+            nameError.show();
+            hasError = true;
+        } else {
+            nameError.hide();
+        }
+        
+        if (email === '') {
+            emailError.text('Email Obrigatório.');
+            emailError.show();
+            hasError = true;
+        } else if (!validateEmail(email)) {
+            emailError.text('Formatação Inválida.');
+            emailError.show();
+            hasError = true;
+        } else {
+            emailError.hide();
+        }
+
+        if (name !== '' && email !== '' && validateEmail(email) && terms == true) {
+            jQuery.ajax({
+                type: 'GET',
+                url: 'https://bpi.briteverify.com/emails.json',
+                data: {
+                    address: email,
+                    apikey: 'ea609555-7f56-4811-aeb3-a81a322ca1ea'
+                },
+                dataType: 'jsonp',
+                success: function(retornoJson) {
+                    if (retornoJson.status == 'valid') {
+                        emailError.hide();
+                        return form.submit();
+                    } else {
+                        emailError.text('Email Inexistente.');
+                        emailError.show();
+                        return false;
+                    }
+                }
+            });
+        }
+        
+        var formulario = document.getElementById("forms_layout");
+		var request = new XMLHttpRequest();
+        request.open('POST', 'https://6kiijqg27h.execute-api.us-east-1.amazonaws.com/dev/add');
+        request.withCredentials = false;
+        request.setRequestHeader('Content-Type','application/application/json');
+        request.setRequestHeader('Access-Control-Allow-Origin', '*');
+        request.send(JSON.stringify({
+					oid: formulario.oid.value,
+					retURL: formulario.sucess_page_form.value,
+					Cidade_OrigemIP__c: formulario.Cidade_OrigemIP__c.value,
+					Estado_OrigemIP__c: formulario.Estado_OrigemIP__c.value,
+					Modo_de_entrada__c: formulario.Modo_de_entrada__c.value,
+					lead_source: formulario.lead_source.value,
+					Area_de_Interesse__c: formulario.Area_de_Interesse__c.value,
+					Concurso_de_Interesse__c: formulario.Concurso_de_Interesse__c.value,
+					Interesse_Evento__c: formulario.Interesse_Evento__c.value,
+					recordType: formulario.recordType.value,
+					Area_de_Interesse__c: formulario.Area_de_Interesse__c.value,
+					first_name: formulario.first_name.value,
+					email: formulario.email.value,
+					phone: formulario.phone.value
+				}));
+        // var data = urlencodeFormData(new FormData(document.querySelector("form")));
+        window.location.href = 'https://www.estrategiaconcursos.com.br/gratis/sucesso/';
+
+        // Enviado os dados pelo Formulário.
+        // var data = new FormData(document.getElementById("forms_layout"));
+        // var xhr = new XMLHttpRequest();
+        // xhr.open('POST', 'https://6kiijqg27h.execute-api.us-east-1.amazonaws.com/dev/add', true);
+        // xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        // xhr.onload = function () {
+        //     console.log(this.responseText);
+        // };
+        // xhr.send(data);
+        // window.open("https://www.estrategiaconcursos.com.br/gratis/sucesso/","_self");
+    }
+
+    /* ===== Animação dos Placeholders ===== */
+    jQuery('.input_labels').on('blur', function() {
+        if(jQuery(this).val().trim() != '') {
+            jQuery(this).addClass('has_val');
+        } else {
+            jQuery(this).removeClass('has_val');
+        }
+    });
+        
+    jQuery('.labels').focusout(function() {
+        if(jQuery(this).val() === '') {
+            jQuery(this).removeClass('has_value');
+        } else { 
+            jQuery(this).addClass('has_value');
+        }
+    });
+
+    /* ===== Valida Telefone + Máscara ===== */
+    function mascara(o, f) {
+        v_obj = o;
+        v_fun = f;
+        setTimeout('execmascara()', 1);
+    }
+
+    function execmascara() {
+        v_obj.value = v_fun(v_obj.value);
+    }
+
+    function mtel(v) {
+        v = v.replace(/\D/g,'');
+        v = v.replace(/^(\d{2})(\d)/g,'($1) $2');
+        v = v.replace(/(\d)(\d{4})$/,'$1-$2');
+        return v;
+    }
+    
+    window.onload = function() {
+        document.getElementById('phone').onkeypress = function() {
+            mascara(this, mtel);
+        }
+    }
+</script>
