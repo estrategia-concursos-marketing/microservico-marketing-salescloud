@@ -28,3 +28,4 @@ serverless.yml
 venv
 node_modules
 commands.txt
+json.json

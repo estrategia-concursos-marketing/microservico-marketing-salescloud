@@ -24,32 +24,20 @@ from datetime import datetime
 """
 
 # context = '1'
-# event = {
-#     "key": "1",
-#     "body": {
-#         "oid": "00D41000001Q9k8",
-#         "retURL": "https://www.estrategiaconcursos.com.br/gratis/sucesso/",
-#         "Cidade_OrigemIP__c": "Barueri",
-#         "Estado_OrigemIP__c": "Sao Paulo",
-#         "Modo_de_entrada__c": "landing-page",
-#         "lead_source": "Landing Page",
-#         "Area_de_Interesse__c": "tribunais",
-#         "Concurso_de_Interesse__c": "",
-#         "Interesse_Evento__c": "TJ CE e TJ AM",
-#         "recordType": "01241000001AP21",
-#         "first_name": "",
-#         "email": "israel.mendes2323232@estrategiaconcursos.com.br",
-#         "phone": ""
-#       }
-#   }
+# event = {"body": "data=%7B%22oid%22%3A%2200D41000001Q9k8%22%2C%22retURL%22%3A%22https%3A%2F%2Fwww.estrategiaconcursos.com.br%2Fgratis%2Fsucesso%2F%22%2C%22Cidade_OrigemIP__c%22%3A%22Barueri%22%2C%22Estado_OrigemIP__c%22%3A%22Sao+Paulo%22%2C%22Modo_de_entrada__c%22%3A%22landing-page%22%2C%22lead_source%22%3A%22Landing+Page%22%2C%22Area_de_Interesse__c%22%3A%22tribunais%22%2C%22Concurso_de_Interesse__c%22%3A%22%22%2C%22Interesse_Evento__c%22%3A%22%22%2C%22recordType%22%3A%2201241000001AP21%22%2C%22first_name%22%3A%22israel%22%2C%22email%22%3A%22israel.mendes2323232%40estrategiaconcursos.com.br%22%2C%22phone%22%3A%22(55)+11944-6919%22%7D", "isBase64Encoded": 0}
 
 def add(event, context):
-    event = event['body']
-
+    event1 = json.loads(urllib.parse.parse_qs(event['body'])['data'][0])
+    
     def emailValidator(email):
         splitAddress = email.split('@')
         domain = str(splitAddress[1])
-    
+
+        # try:
+        #     records = dns.resolver.query(domain, 'MX')
+        # except:
+        #     return 'notExistingEmail'
+        
         records = dns.resolver.query(domain, 'MX')
         mxRecord = records[0].exchange
         mxRecord = str(mxRecord)
@@ -59,51 +47,45 @@ def add(event, context):
         server.connect(mxRecord)
         server.helo(server.local_hostname)
         server.mail(email)
-
         code, message = server.rcpt(str(email))
         server.quit()
+
         if code == 250:
             return 'existingEmail'
         else:
             return 'notExistingEmail'
 
-
-    def marketingCloud(bases, event):
+    def marketingCloud(bases, event1):
         stubObj = ET_Client.ET_Client(
             False, False,
             {
-                'clientid': 'frd0kjo8x032pu3bcd4pxpn4',
-                'clientsecret': 'AD0fLFSqfrTkPnXpRCo5Nn2w',
+                'clientid': os.environ['clientid'],
+                'clientsecret': os.environ['clientsecret'],
                 'defaultwsdl': 'https://webservice.exacttarget.com/etframework.wsdl',
-                'authenticationurl': 'https://mck0g3r840gk4n89wnf1-q7jml7y.auth.marketingcloudapis.com/',
-                'baseapiurl': 'https://mck0g3r840gk4n89wnf1-q7jml7y.rest.marketingcloudapis.com/',
-                'soapendpoint': 'https://mck0g3r840gk4n89wnf1-q7jml7y.soap.marketingcloudapis.com/',
+                'authenticationurl': os.environ['authenticationurl'],
+                'baseapiurl': os.environ['baseapiurl'],
+                'soapendpoint': os.environ['soapendpoint'],
                 'wsdl_file_local_loc': r'/tmp/ExactTargetWSDL.xml',
                 'useOAuth2Authentication': 'True',
-                'accountId': '100002066'
-                # 'clientid': os.environ['clientid'],
-                # 'clientsecret': os.environ['clientsecret'],
-                # 'defaultwsdl': 'https://webservice.exacttarget.com/etframework.wsdl',
-                # 'authenticationurl': os.environ['authenticationurl'],
-                # 'baseapiurl': os.environ['baseapiurl'],
-                # 'soapendpoint': os.environ['soapendpoint'],
-                # 'wsdl_file_local_loc': r'ExactTargetWSDL.xml',
-                # 'useOAuth2Authentication': 'True',
-                # 'accountId': os.environ['accountId']
+                'accountId': os.environ['accountId']
             })
         de = ET_Client.ET_DataExtension_Row()
         de.CustomerKey = bases
         de.auth_stub = stubObj
-        de.props = props1 if de.CustomerKey == basesLeads_Gerais else props2
+        de.props = props1 if de.CustomerKey == 'TESTE-Microservico-Leads-Gerais-5' else props2
         postResponse = de.post()
-
         # Mensagens de error para debugar depois! Caso necessário:
         ## print("Post Status: " + str(postResponse.status))
         ## print("Code: " + str(postResponse.code))
         ## print("Message: " + str(postResponse.message))
         ## print("Results: " + str(postResponse.results))
 
-    def salesCloud(event):
+        if not postResponse.status:
+            return False
+        else:
+            return True
+
+    def salesCloud(payload):
         url = 'https://webto.salesforce.com/servlet/servlet.WebToLead'
         encoding = {'encoding':'UTF-8'}
 
@@ -120,49 +102,53 @@ def add(event, context):
 
         response = requests.request('POST', url, data=payload, headers=headers, params=encoding)
     
-    email = event['email']
+    email = event1['email']
 
     payload = {
-        'oid': event['oid'],
-        'retURL': event['retURL'],
-        'Cidade_OrigemIP__c': event['Cidade_OrigemIP__c'],
-        'Estado_OrigemIP__c': event['Estado_OrigemIP__c'],
-        'Modo_de_entrada__c': event['Modo_de_entrada__c'],
-        'lead_source': event['lead_source'],
-        'Area_de_Interesse__c': event['Area_de_Interesse__c'],
-        'Concurso_de_Interesse__c': event['Concurso_de_Interesse__c'],
-        'Interesse_Evento__c': event['Interesse_Evento__c'],
-        'recordType': event['recordType'],
-        'first_name': event['first_name'],
-        'email': event['email'],
-        'phone': event['phone']
+        'oid': event1['oid'],
+        'retURL': event1['retURL'],
+        'Cidade_OrigemIP__c': event1['Cidade_OrigemIP__c'],
+        'Estado_OrigemIP__c': event1['Estado_OrigemIP__c'],
+        'Modo_de_entrada__c': event1['Modo_de_entrada__c'],
+        'lead_source': event1['lead_source'],
+        'Area_de_Interesse__c': event1['Area_de_Interesse__c'],
+        'Concurso_de_Interesse__c': event1['Concurso_de_Interesse__c'],
+        'Interesse_Evento__c': event1['Interesse_Evento__c'],
+        'recordType': event1['recordType'],
+        'first_name': event1['first_name'],
+        'email': event1['email'],
+        'phone': event1['phone']
     }
 
     props1 = {
-        'Cidade de Origem do IP': event['Cidade_OrigemIP__c'],
-        'Estado de Origem do IP': event['Estado_OrigemIP__c'],
-        'Modo de entrada': event['Modo_de_entrada__c'],
-        'Origem do lead': event['lead_source'],
-        'Interesse - Área': event['Area_de_Interesse__c'],
-        'Interesse - Concurso': event['Concurso_de_Interesse__c'],
-        'Interesse - Evento': event['Interesse_Evento__c'],
-        'Nome': event['first_name'],
-        'Email': event['email'],
-        'Telefone': event['phone'],
+        'Cidade de Origem do IP': event1['Cidade_OrigemIP__c'],
+        'Estado de Origem do IP': event1['Estado_OrigemIP__c'],
+        'Modo de entrada': event1['Modo_de_entrada__c'],
+        'Origem do lead': event1['lead_source'],
+        'Interesse - Área': event1['Area_de_Interesse__c'],
+        'Interesse - Concurso': event1['Concurso_de_Interesse__c'],
+        'Interesse - Evento': event1['Interesse_Evento__c'],
+        'Nome': event1['first_name'],
+        'Email': event1['email'],
+        'Telefone': event1['phone'],
         'Data de criação': datetime.now().strftime('%d/%m/%Y'),
         'Hora de Criação': datetime.now().strftime('%H:%M')
     }
 
     props2 = {
-        'Email': event['email'],
-        'Nome': event['first_name']
+        'Email': event1['email'],
+        'Nome': event1['first_name']
     }
 
-    basesLeads_Gerais = 'TESTE-Microservico-Leads-Gerais-5'
-    basesTotal_Gerais = 'TESTE-Microservico-Total_Emails_Geral_'
+    # bases = [
+    #     os.environ['basesLeads_Gerais'],
+    #     os.environ['basesTotal_Gerais']
+    # ]
 
-    # basesLeads_Gerais = os.environ['basesLeads_Gerais']
-    # basesTotal_Gerais = os.environ['basesTotal_Gerais']
+    bases = [
+        'TESTE-Microservico-Leads-Gerais-5',
+        'TESTE-Microservico-Total_Emails_Geral_'
+    ]
 
     # Principal do Microserviço
     if emailValidator(email) == 'notExistingEmail':
@@ -171,32 +157,34 @@ def add(event, context):
             'input': email
         }
         response = {
-            statusCode: 409,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Credentials': true,
-                'Content-Type': 'application/json',
+            'statusCode': 409,
+            'headers': {
+                "Access-Control-Allow-Credentials": True,
+                "Access-Control-Allow-Origin": "*",
+                "Content-Type": "application/json"
             },
-            body: json.dumps(body)
+            'body': json.dumps(body)
         }
         print(response)
         return response
     else:
-        salesCloud(event)
-        marketingCloud(basesLeads_Gerais, event)
-        marketingCloud(basesTotal_Gerais, event)
+        salesCloud(event1)
+
+        for base in bases:
+            marketingCloud(base, event1)
+
         body = {
-            'message': 'Leads inseridas com sucesso',
-            'input': event
+            'message': 'Lead inserida com sucesso.',
+            'input': event1
         }
         response = {
-            statusCode: 200,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Credentials': true,
-                'Content-Type': 'application/json',
+            'statusCode': 200,
+            'headers': {
+                "Access-Control-Allow-Credentials": True,
+                "Access-Control-Allow-Origin": "*",
+                "Content-Type": "application/json"
             },
-            body: json.dumps(body)
+            'body': json.dumps(body)
         }
         print(response)
         return response

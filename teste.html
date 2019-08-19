@@ -1,6 +1,5 @@
 <!--- Não usamos tag de HTML, HEAD e BODY pois ele buga o junto com o DIV do Wordpress. Procure evitar por enquanto, se possível. -->
-<script type='text/javascript' src='https://www.estrategiaconcursos.com.br/gratis/wp-includes/js/jquery/jquery.js?ver=1.12.4-wp'></script>
-<script type='text/javascript' src='https://www.estrategiaconcursos.com.br/gratis/wp-includes/js/jquery/jquery-migrate.min.js?ver=1.4.1'></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 
 <style>
     #forms {
@@ -277,7 +276,7 @@
             <input name='lead_source' id='lead_source' maxlength='255' size='20' value='Landing Page'>
             <input name='Area_de_Interesse__c' id='Area_de_Interesse__c' maxlength='30' size='20' value='tribunais'>
             <input name='Concurso_de_Interesse__c' id='Concurso_de_Interesse__c' maxlength='255' size='20' value=''>
-            <input name='Interesse_Evento__c' id='Interesse_Evento__c' maxlength='255' size='20' value=''>
+            <input name='Interesse_Evento__c' id='Interesse_Evento__c' maxlength='255' size='20' value='TReste-teste'>
             <select  id='recordType' name='recordType'>
                 <option value='01241000001AP21'>Lead Marketing</option>
             </select>
@@ -411,7 +410,6 @@
             document.getElementById('Interesse_Evento__c').value = title;
         }
     }
-    
 
     /* ===== Valida Email na Formatação Correta ===== */
     function validateEmail(email) {
@@ -484,13 +482,10 @@
             });
         }
         
+
+        // Enviado os dados pelo Formulário.
         var formulario = document.getElementById("forms_layout");
-		var request = new XMLHttpRequest();
-        request.open('POST', 'https://6kiijqg27h.execute-api.us-east-1.amazonaws.com/dev/add');
-        request.withCredentials = false;
-        request.setRequestHeader('Content-Type','application/application/json');
-        request.setRequestHeader('Access-Control-Allow-Origin', '*');
-        request.send(JSON.stringify({
+        var data = JSON.stringify({
 					oid: formulario.oid.value,
 					retURL: formulario.sucess_page_form.value,
 					Cidade_OrigemIP__c: formulario.Cidade_OrigemIP__c.value,
@@ -505,20 +500,20 @@
 					first_name: formulario.first_name.value,
 					email: formulario.email.value,
 					phone: formulario.phone.value
-				}));
-        // var data = urlencodeFormData(new FormData(document.querySelector("form")));
-        window.location.href = 'https://www.estrategiaconcursos.com.br/gratis/sucesso/';
+		});
 
-        // Enviado os dados pelo Formulário.
-        // var data = new FormData(document.getElementById("forms_layout"));
-        // var xhr = new XMLHttpRequest();
-        // xhr.open('POST', 'https://6kiijqg27h.execute-api.us-east-1.amazonaws.com/dev/add', true);
-        // xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-        // xhr.onload = function () {
-        //     console.log(this.responseText);
-        // };
-        // xhr.send(data);
-        // window.open("https://www.estrategiaconcursos.com.br/gratis/sucesso/","_self");
+        jQuery.ajax({
+            url: 'https://6kiijqg27h.execute-api.us-east-1.amazonaws.com/dev/add',
+            method: 'post',
+            crossDomain: true,
+            data: {data},
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            success: function () { window.location.href = 'https://www.estrategiaconcursos.com.br/gratis/sucesso/'; },
+            error: function (error, textStatus, errorThrown) { console.error(textStatus); }
+        }).done( location.href = "https://www.estrategiaconcursos.com.br/gratis/sucesso/" );
     }
 
     /* ===== Animação dos Placeholders ===== */

@@ -4,7 +4,7 @@
   "description": "Microserviço que vai levar os dados de CRM em POST para o Marketing Cloud e Salescloud.",
   "main": "index.js",
   "dependencies": {
-    "serverless": "^1.49.0",
+    "serverless": "^1.50.0",
     "serverless-python-requirements": "^4.3.0"
   },
   "devDependencies": {},
