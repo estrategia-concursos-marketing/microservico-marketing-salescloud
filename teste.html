@@ -1,5 +1,5 @@
 <!--- Não usamos tag de HTML, HEAD e BODY pois ele buga o junto com o DIV do Wordpress. Procure evitar por enquanto, se possível. -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<!--- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script> -->
 
 <style>
     #forms {
@@ -265,7 +265,6 @@
 
 <div id='forms'>
     <form id='forms_layout'>
-
         <!--- Inputs para Definir Área, Concurso, Evento e do próprio Formulário. NÃO RETIRAR E TOMAR CUIDADO AO ALTERAR! -->
         <div class='inputs_no_display_forms'>
             <input id='oid' name='oid' value='00D41000001Q9k8'>
@@ -274,7 +273,7 @@
             <input id='Estado_OrigemIP__c' maxlength='200' name='Estado_OrigemIP__c' size='20' type='text' /><br>
             <input name='Modo_de_entrada__c' id='Modo_de_entrada__c' maxlength='255' size='20' value='landing-page'>
             <input name='lead_source' id='lead_source' maxlength='255' size='20' value='Landing Page'>
-            <input name='Area_de_Interesse__c' id='Area_de_Interesse__c' maxlength='30' size='20' value='tribunais'>
+            <input name='Area_de_Interesse__c' id='Area_de_Interesse__c' maxlength='30' size='20' value='oab'>
             <input name='Concurso_de_Interesse__c' id='Concurso_de_Interesse__c' maxlength='255' size='20' value=''>
             <input name='Interesse_Evento__c' id='Interesse_Evento__c' maxlength='255' size='20' value='TReste-teste'>
             <select  id='recordType' name='recordType'>
@@ -308,7 +307,7 @@
         </div>
         
         <label class='container_checkbox'>
-                Você concorda com a nossa <a class='politics_privacy_ahref' href='https://www.estrategiaconcursos.com.br/gratis/politica-de-privacidade/' target='_blank'>Política de Privacidade</a> e aceita receber informações adicionais do Estratégia Educacional.
+                Você concorda com a nossa <a class='politics_privacy_ahref' href='https://www.estrategiaconcursos.com.br/gratis/politica-de-privacidade/' target='_blank' rel='noopener noreferrer'>Política de Privacidade</a> e aceita receber informações adicionais do Estratégia Educacional.
                 <input id='checkbox_layout' type='checkbox' checked='checked' required>
                 <span class='checkbox'></span>
         </label>
@@ -481,7 +480,6 @@
                 }
             });
         }
-        
 
         // Enviado os dados pelo Formulário.
         var formulario = document.getElementById("forms_layout");
@@ -505,16 +503,21 @@
         jQuery.ajax({
             url: 'https://6kiijqg27h.execute-api.us-east-1.amazonaws.com/dev/add',
             method: 'post',
+            async: true,
             crossDomain: true,
             data: {data},
+            timeout: 2000,
             headers: {
-                'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            success: function () { window.location.href = 'https://www.estrategiaconcursos.com.br/gratis/sucesso/'; },
-            error: function (error, textStatus, errorThrown) { console.error(textStatus); }
-        }).done( location.href = "https://www.estrategiaconcursos.com.br/gratis/sucesso/" );
-    }
+            error: function (error, textStatus, errorThrown) { console.error(error, textStatus, errorThrown); }
+        });
+
+        jQuery("form").submit(function(e){
+            e.preventDefault();
+            window.location.replace(document.getElementById('sucess_page_form').value);
+        });
+    };
 
     /* ===== Animação dos Placeholders ===== */
     jQuery('.input_labels').on('blur', function() {
