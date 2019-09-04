@@ -20,9 +20,6 @@ from datetime import datetime
   Qualquer PROBLEMA, entre em contato com a equipe de BI e CRM, responsáveis pela produção desse microserviço.
 """
 
-# context = '1'
-# event = {"body": "data=%7B%22oid%22%3A%2200D41000001Q9k8%22%2C%22retURL%22%3A%22https%3A%2F%2Fwww.estrategiaconcursos.com.br%2Fgratis%2Fsucesso%2F%22%2C%22Cidade_OrigemIP__c%22%3A%22Barueri%22%2C%22Estado_OrigemIP__c%22%3A%22Sao+Paulo%22%2C%22Modo_de_entrada__c%22%3A%22landing-page%22%2C%22lead_source%22%3A%22Landing+Page%22%2C%22Area_de_Interesse__c%22%3A%22tribunais%22%2C%22Concurso_de_Interesse__c%22%3A%22%22%2C%22Interesse_Evento__c%22%3A%22%22%2C%22recordType%22%3A%2201241000001AP21%22%2C%22first_name%22%3A%22israel%22%2C%22email%22%3A%22israel.mendes23232323%40estrategiaconcursos.com.br%22%2C%22phone%22%3A%22(55)+11944-6919%22%7D", "isBase64Encoded": 0}
-
 def add(event, context):
     event1 = json.loads(urllib.parse.parse_qs(event['body'])['data'][0])
 
@@ -104,7 +101,8 @@ def add(event, context):
             "Data": {
                 "Nome": event1['first_name'],
                 "Email": email,
-                "Interesse - Evento": event1['Interesse_Evento__c']
+                "Interesse - Evento": event1['Interesse_Evento__c'],
+                "Interesse - Area": event1['Area_de_Interesse__c']
             }
         }
 
@@ -176,7 +174,7 @@ def add(event, context):
         if marketingCloud(os.environ['basesTotal_Gerais'], event1):
             boasVindas(email, event1)
 
-        # Resposta do HTTP.
+        # Resposta do Request.
         body = {
             'message': 'Lead inserida com sucesso.',
             'input': event1
@@ -194,5 +192,3 @@ def add(event, context):
         return response
     
     main(event1)
-
-# add(event, context)
