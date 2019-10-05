@@ -1,0 +1,59 @@
+service: leads
+
+provider:
+  name: aws
+  runtime: python3.7
+  project: leads
+  region: us-east-1
+  stage: dev
+  environment:
+    basesLeads_Gerais: Leads_Base_Importacao
+    basesTotal_Gerais: Total_Emails_Geral_
+    clientid: frd0kjo8x032pu3bcd4pxpn4
+    clientsecret: AD0fLFSqfrTkPnXpRCo5Nn2w
+    authenticationurl: https://mck0g3r840gk4n89wnf1-q7jml7y.auth.marketingcloudapis.com/
+    baseapiurl: https://mck0g3r840gk4n89wnf1-q7jml7y.rest.marketingcloudapis.com/
+    soapendpoint: https://mck0g3r840gk4n89wnf1-q7jml7y.soap.marketingcloudapis.com/
+    accountId: 100002066
+
+package:
+  exclude:
+    - node_modules/**
+    - .gitignore
+    - .git/**q
+    - cfg.cfg
+    - README.md
+    - .vscode
+    - package-lock.json
+    - package.json
+    - requirements.txt
+    - serverless.yml
+    - file.json
+    - validacao.py
+
+plugins:
+  - serverless-python-requirements
+
+functions:
+  verify:
+    handler: handler.add
+    events:
+      - http:
+          path: add
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+
+custom:
+  pythonRequirements:
+    fileName: requirements.txt
+    pythonBin: C:\Users\israel.silva.ESTRATEGIA\AppData\Local\Programs\Python\Python37\python.exe
+    dockerizePip: true

@@ -3,6 +3,7 @@ import json
 import requests
 import ET_Client
 import urllib.parse
+from urllib.parse import urlencode
 from datetime import datetime
 
 """
@@ -20,9 +21,13 @@ from datetime import datetime
   Qualquer PROBLEMA, entre em contato com a equipe de BI e CRM, responsáveis pela produção desse microserviço.
 """
 
+context = '1'
+with open('file.json') as json_file:
+    event = json.load(json_file)
+
 def add(event, context):
-    print(event)
     event1 = json.loads(urllib.parse.parse_qs(event['body'])['data'][0])
+    print(event1)
 
     def marketingCloud(bases, event1):
         stubObj = ET_Client.ET_Client(
@@ -54,20 +59,20 @@ def add(event, context):
 
     def salesCloud(payload):
         url = 'http://customlead-dev.us-east-1.elasticbeanstalk.com/lead'
-        encoding = {'encoding':'UTF-8'}
         headers = {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Accept': '*/*',
-            'Cache-Control': 'no-cache',
-            'Host': 'webto.salesforce.com',
-            'Accept-Encoding': 'gzip, deflate',
-            'Connection': 'keep-alive',
-            'cache-control': 'no-cache'
+            'Content-Type': "application/x-www-form-urlencoded",
+            'Accept': "*/*",
+            'Cache-Control': "no-cache",
+            'Accept-Encoding': "gzip, deflate",
+            'Referer': "http://customlead-dev.us-east-1.elasticbeanstalk.com/lead",
+            'Connection': "keep-alive",
+            'cache-control': "no-cache"
         }
-        encode = urllib.quote(payload)
+
+        encode = urlencode(payload)
         print(encode)
 
-        requests.request('POST', url, data=encode, headers=headers, params=encoding)
+        response = requests.request('POST', url, data=encode, headers=headers)
 
     def boasVindas(email, event1):
         # Validação do AUTH:
@@ -131,14 +136,14 @@ def add(event, context):
         'Cidade_OrigemIP__c': event1['Cidade_OrigemIP__c'],
         'Estado_OrigemIP__c': event1['Estado_OrigemIP__c'],
         'Modo_de_entrada__c': event1['Modo_de_entrada__c'],
-        'lead_source': event1['lead_source'],
+        'leadSource': event1['lead_source'],
         'Area_de_Interesse__c': event1['Area_de_Interesse__c'],
         'Concurso_de_Interesse__c': event1['Concurso_de_Interesse__c'],
         'Interesse_Evento__c': event1['Interesse_Evento__c'],
         'recordType': event1['recordType'],
-        'first_name': event1['first_name'],
+        'lastName': event1['first_name'],
         'email': event1['email'],
-        'phone': event1['phone']
+        'mobilePhone': event1['phone']
     }
 
     props1 = {
@@ -163,7 +168,7 @@ def add(event, context):
 
     # Principal do Microserviço
     def main(event1):
-        salesCloud(event1)
+        salesCloud(payload)
 
         marketingCloud(os.environ['basesLeads_Gerais'], event1)
 
@@ -188,3 +193,5 @@ def add(event, context):
         return response
     
     main(event1)
+
+add(event, context)
