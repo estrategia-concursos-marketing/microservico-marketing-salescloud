@@ -41,6 +41,7 @@ functions:
       - http:
           path: add
           method: post
+          async: true
           cors:
             origin: '*'
             headers:

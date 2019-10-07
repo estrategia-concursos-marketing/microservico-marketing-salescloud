@@ -70,7 +70,6 @@ def add(event, context):
         }
 
         encode = urlencode(payload)
-        print(encode)
 
         response = requests.request('POST', url, data=encode, headers=headers)
 
@@ -140,7 +139,7 @@ def add(event, context):
         'Area_de_Interesse__c': event1['Area_de_Interesse__c'],
         'Concurso_de_Interesse__c': event1['Concurso_de_Interesse__c'],
         'Interesse_Evento__c': event1['Interesse_Evento__c'],
-        'recordType': event1['recordType'],
+        'recordTypeId': event1['recordType'],
         'lastName': event1['first_name'],
         'email': event1['email'],
         'mobilePhone': event1['phone']
